@@ -7,6 +7,7 @@ namespace UptimeMonitor.API.Data
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
+        public DbSet<User> Users { get; set; }
         public DbSet<ServiceSystem> ServiceSystems => Set<ServiceSystem>();
         public DbSet<Component> Components => Set<Component>();
         public DbSet<UptimeCheck> UptimeChecks => Set<UptimeCheck>();

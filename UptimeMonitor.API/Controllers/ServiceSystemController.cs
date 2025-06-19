@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using UptimeMonitor.API.DTOs;
 using UptimeMonitor.API.Interfaces;
 
 namespace UptimeMonitor.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class ServiceSystemController : ControllerBase
