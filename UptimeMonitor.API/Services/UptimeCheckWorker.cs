@@ -22,12 +22,14 @@ namespace UptimeMonitor.API.Services
         {
             _logger.LogInformation("UptimeCheckWorker started.");
 
+            var limaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SA Pacific Standard Time");
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 using var scope = _scopeFactory.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-                var now = DateTime.UtcNow;
+                var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, limaTimeZone);
                 var checks = await db.UptimeChecks.ToListAsync(stoppingToken);
 
                 foreach (var check in checks)
@@ -42,9 +44,9 @@ namespace UptimeMonitor.API.Services
 
                     if (!shouldRun) continue;
 
-                    var start = DateTime.UtcNow;
+                    var start = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, limaTimeZone);
                     var result = await SimulateCheckAsync(check);
-                    var end = DateTime.UtcNow;
+                    var end = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, limaTimeZone);
 
                     db.UptimeEvents.Add(new UptimeEvent
                     {

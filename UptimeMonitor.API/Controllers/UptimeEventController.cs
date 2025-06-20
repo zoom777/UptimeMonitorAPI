@@ -21,5 +21,24 @@ namespace UptimeMonitor.API.Controllers
             var events = await _service.GetAllAsync();
             return Ok(events);
         }
+
+        [HttpPut("{id}/partial")]
+        public async Task<IActionResult> UpdatePartial(int id, [FromBody] UptimeEventUpdateDto dto)
+        {
+            var result = await _service.UpdatePartialAsync(id, dto);
+            return result != null ? Ok(result) : NotFound();
+        }
+
+        [HttpGet("export")]
+        public async Task<IActionResult> ExportToExcel()
+        {
+            var fileContent = await _service.GenerateExcelAsync();
+
+            return File(
+                fileContent,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"uptime-events-{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx"
+            );
+        }
     }
 }
