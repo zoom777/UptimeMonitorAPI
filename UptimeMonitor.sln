@@ -5,10 +5,7 @@ VisualStudioVersion = 17.14.36127.28
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UptimeMonitor.API", "UptimeMonitor.API\UptimeMonitor.API.csproj", "{7EB7958D-29EB-40C4-9A11-1BE680F651FA}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Elementos de la solución", "Elementos de la solución", "{5E9AB3C8-5AD8-421C-9BD0-3BEDFA05504F}"
-	ProjectSection(SolutionItems) = preProject
-		docker-compose.yml = docker-compose.yml
-	EndProjectSection
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UptimeMonitor.Tests", "UptimeMonitor.Tests\UptimeMonitor.Tests.csproj", "{AD2C3050-B770-492E-B162-144BADA9520E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,6 +17,10 @@ Global
 		{7EB7958D-29EB-40C4-9A11-1BE680F651FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7EB7958D-29EB-40C4-9A11-1BE680F651FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7EB7958D-29EB-40C4-9A11-1BE680F651FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD2C3050-B770-492E-B162-144BADA9520E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD2C3050-B770-492E-B162-144BADA9520E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD2C3050-B770-492E-B162-144BADA9520E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD2C3050-B770-492E-B162-144BADA9520E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
