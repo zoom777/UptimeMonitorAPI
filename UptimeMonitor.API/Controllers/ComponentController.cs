@@ -36,8 +36,8 @@ namespace UptimeMonitor.API.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, ComponentCreateDto dto)
         {
-            var success = await _service.UpdateAsync(id, dto);
-            return success ? NoContent() : NotFound();
+            var updated = await _service.UpdateAsync(id, dto);
+            return updated is null ? NotFound() : Ok(updated);
         }
 
         [HttpDelete("{id}")]
@@ -45,6 +45,13 @@ namespace UptimeMonitor.API.Controllers
         {
             var success = await _service.DeleteAsync(id);
             return success ? NoContent() : NotFound();
+        }
+
+        [HttpGet("by-service-system/{serviceSystemId}")]
+        public async Task<ActionResult<IEnumerable<ComponentResponseDto>>> GetByServiceSystemId(int serviceSystemId)
+        {
+            var result = await _service.GetByServiceSystemIdAsync(serviceSystemId);
+            return Ok(result);
         }
     }
 }

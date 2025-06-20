@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using UptimeMonitor.API.Data;
 using UptimeMonitor.API.DTOs;
 using UptimeMonitor.API.Entities;
@@ -62,17 +63,24 @@ namespace UptimeMonitor.API.Services
                 ServiceSystemId = entity.ServiceSystemId
             };
         }
-
-        public async Task<bool> UpdateAsync(int id, ComponentCreateDto dto)
+        public async Task<ComponentResponseDto?> UpdateAsync(int id, ComponentCreateDto dto)
         {
             var entity = await _context.Components.FindAsync(id);
-            if (entity == null) return false;
+            if (entity == null) return null;
 
             entity.Name = dto.Name;
             entity.Description = dto.Description;
             entity.ServiceSystemId = dto.ServiceSystemId;
             await _context.SaveChangesAsync();
-            return true;
+
+            return new ComponentResponseDto
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                Description = entity.Description,
+                Status = entity.Status,
+                ServiceSystemId = entity.ServiceSystemId
+            };
         }
 
         public async Task<bool> DeleteAsync(int id)
@@ -83,6 +91,20 @@ namespace UptimeMonitor.API.Services
             _context.Components.Remove(entity);
             await _context.SaveChangesAsync();
             return true;
+        }
+        public async Task<IEnumerable<ComponentResponseDto>> GetByServiceSystemIdAsync(int serviceSystemId)
+        {
+            return await _context.Components
+                .Where(c => c.ServiceSystemId == serviceSystemId)
+                .Select(c => new ComponentResponseDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Description = c.Description,
+                    Status = c.Status,
+                    ServiceSystemId = c.ServiceSystemId
+                })
+                .ToListAsync();
         }
     }
 }

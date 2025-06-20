@@ -59,15 +59,22 @@ namespace UptimeMonitor.API.Services
             };
         }
 
-        public async Task<bool> UpdateAsync(int id, ServiceSystemCreateDto dto)
+        public async Task<ServiceSystemResponseDto?> UpdateAsync(int id, ServiceSystemCreateDto dto)
         {
             var entity = await _context.ServiceSystems.FindAsync(id);
-            if (entity == null) return false;
+            if (entity == null) return null;
 
             entity.Name = dto.Name;
             entity.Description = dto.Description;
             await _context.SaveChangesAsync();
-            return true;
+
+            return new ServiceSystemResponseDto
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                Description = entity.Description,
+                Status = entity.Status
+            };
         }
 
         public async Task<bool> DeleteAsync(int id)

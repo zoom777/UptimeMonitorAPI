@@ -91,10 +91,10 @@ namespace UptimeMonitor.API.Services
             };
         }
 
-        public async Task<bool> UpdateAsync(int id, UptimeCheckCreateDto dto)
+        public async Task<UptimeCheckResponseDto?> UpdateAsync(int id, UptimeCheckCreateDto dto)
         {
             var entity = await _context.UptimeChecks.FindAsync(id);
-            if (entity == null) return false;
+            if (entity == null) return null;
 
             entity.Name = dto.Name;
             entity.ServiceSystemId = dto.ServiceSystemId;
@@ -109,7 +109,22 @@ namespace UptimeMonitor.API.Services
             entity.AlertEmail = dto.AlertEmail;
 
             await _context.SaveChangesAsync();
-            return true;
+
+            return new UptimeCheckResponseDto
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                ServiceSystemId = entity.ServiceSystemId,
+                ComponentId = entity.ComponentId,
+                CheckUrl = entity.CheckUrl,
+                CheckInterval = entity.CheckInterval,
+                CheckTimeout = entity.CheckTimeout,
+                RequestHeaders = entity.RequestHeaders,
+                DownAlertDelay = entity.DownAlertDelay,
+                DownAlertResend = entity.DownAlertResend,
+                DownAlertMessage = entity.DownAlertMessage,
+                AlertEmail = entity.AlertEmail
+            };
         }
 
         public async Task<bool> DeleteAsync(int id)

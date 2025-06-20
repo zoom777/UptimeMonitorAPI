@@ -7,7 +7,7 @@ namespace UptimeMonitor.API.Interfaces
         Task<IEnumerable<UptimeCheckResponseDto>> GetAllAsync();
         Task<UptimeCheckResponseDto?> GetByIdAsync(int id);
         Task<UptimeCheckResponseDto> CreateAsync(UptimeCheckCreateDto dto);
-        Task<bool> UpdateAsync(int id, UptimeCheckCreateDto dto);
+        Task<UptimeCheckResponseDto?> UpdateAsync(int id, UptimeCheckCreateDto dto);
         Task<bool> DeleteAsync(int id);
     }
 }
