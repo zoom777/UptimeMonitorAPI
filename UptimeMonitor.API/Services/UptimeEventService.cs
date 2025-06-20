@@ -75,10 +75,10 @@ namespace UptimeMonitor.API.Services
                 .AsQueryable();
 
             if (dateFrom.HasValue)
-                query = query.Where(e => e.StartTime >= dateFrom.Value);
+                query = query.Where(e => e.StartTime.Date >= dateFrom.Value.Date);
 
             if (dateTo.HasValue)
-                query = query.Where(e => e.StartTime <= dateTo.Value);
+                query = query.Where(e => e.StartTime.Date <= dateTo.Value.Date);
 
             return await query
                 .OrderByDescending(e => e.StartTime)
