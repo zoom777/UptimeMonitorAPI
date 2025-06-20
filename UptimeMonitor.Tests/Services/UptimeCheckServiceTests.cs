@@ -3,7 +3,6 @@ using UptimeMonitor.API.Data;
 using UptimeMonitor.API.DTOs;
 using UptimeMonitor.API.Entities;
 using UptimeMonitor.API.Services;
-using Xunit;
 
 namespace UptimeMonitor.Tests.Services
 {
@@ -137,13 +136,11 @@ namespace UptimeMonitor.Tests.Services
 
             var result = await service.UpdateAsync(entity.Id, updateDto);
 
-            Assert.True(result);
-            var updated = await context.UptimeChecks.FindAsync(entity.Id);
-            Assert.Equal("Updated", updated!.Name);
-            Assert.Equal("https://updated.com", updated.CheckUrl);
-            Assert.Equal("updated@example.com", updated.AlertEmail);
+            Assert.NotNull(result);
+            Assert.Equal("Updated", result!.Name);
+            Assert.Equal("https://updated.com", result.CheckUrl);
+            Assert.Equal("updated@example.com", result.AlertEmail);
         }
-
 
         [Fact]
         public async Task DeleteAsync_RemovesEntity()

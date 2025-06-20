@@ -3,7 +3,6 @@ using Moq;
 using UptimeMonitor.API.Controllers;
 using UptimeMonitor.API.DTOs;
 using UptimeMonitor.API.Interfaces;
-using Xunit;
 
 namespace UptimeMonitor.Tests.Controllers
 {
@@ -75,19 +74,33 @@ namespace UptimeMonitor.Tests.Controllers
         }
 
         [Fact]
-        public async Task Update_WhenSuccess_ReturnsNoContent()
+        public async Task Update_WhenSuccess_ReturnsOkWithDto()
         {
-            _mockService.Setup(s => s.UpdateAsync(1, It.IsAny<UptimeCheckCreateDto>())).ReturnsAsync(true);
+            var updated = new UptimeCheckResponseDto
+            {
+                Id = 1,
+                Name = "Updated Check",
+                CheckUrl = "https://updated.com"
+            };
+
+            _mockService
+                .Setup(s => s.UpdateAsync(1, It.IsAny<UptimeCheckCreateDto>()))
+                .ReturnsAsync(updated);
 
             var result = await _controller.Update(1, new UptimeCheckCreateDto());
 
-            Assert.IsType<NoContentResult>(result);
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var returnValue = Assert.IsType<UptimeCheckResponseDto>(okResult.Value);
+            Assert.Equal(1, returnValue.Id);
+            Assert.Equal("Updated Check", returnValue.Name);
         }
 
         [Fact]
         public async Task Update_WhenNotFound_ReturnsNotFound()
         {
-            _mockService.Setup(s => s.UpdateAsync(999, It.IsAny<UptimeCheckCreateDto>())).ReturnsAsync(false);
+            _mockService
+                .Setup(s => s.UpdateAsync(999, It.IsAny<UptimeCheckCreateDto>()))
+                .ReturnsAsync((UptimeCheckResponseDto?)null);
 
             var result = await _controller.Update(999, new UptimeCheckCreateDto());
 

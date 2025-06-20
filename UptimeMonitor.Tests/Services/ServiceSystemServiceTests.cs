@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using UptimeMonitor.API.Data;
 using UptimeMonitor.API.DTOs;
 using UptimeMonitor.API.Entities;
@@ -87,13 +85,18 @@ namespace UptimeMonitor.Tests.Services
 
             var result = await service.UpdateAsync(entity.Id, updatedDto);
 
-            Assert.True(result);
+            Assert.NotNull(result);
+            Assert.Equal("Updated Name", result!.Name);
+            Assert.Equal("Updated Desc", result.Description);
+            Assert.Equal(entity.Id, result.Id);
+
             var updated = await context.ServiceSystems.FindAsync(entity.Id);
             Assert.Equal("Updated Name", updated!.Name);
+            Assert.Equal("Updated Desc", updated.Description);
         }
 
         [Fact]
-        public async Task UpdateAsync_ReturnsFalseIfNotFound()
+        public async Task UpdateAsync_ReturnsNullIfNotFound()
         {
             var context = GetInMemoryDbContext();
             var service = new ServiceSystemService(context);
@@ -101,7 +104,7 @@ namespace UptimeMonitor.Tests.Services
             var dto = new ServiceSystemCreateDto { Name = "Name", Description = "Desc" };
             var result = await service.UpdateAsync(999, dto);
 
-            Assert.False(result);
+            Assert.Null(result);
         }
 
         [Fact]
