@@ -39,13 +39,22 @@ namespace UptimeMonitor.API.Services
                 }).ToListAsync();
         }
 
-        public async Task<IEnumerable<UptimeEventExportDto>> GetAllForExportAsync()
+        public async Task<IEnumerable<UptimeEventExportDto>> GetAllForExportAsync(DateTime? dateFrom, DateTime? dateTo)
         {
-            return await _context.UptimeEvents
+            var query = _context.UptimeEvents
                 .Include(e => e.UptimeCheck)
                     .ThenInclude(uc => uc.Component)
                     .ThenInclude(c => c.ServiceSystem)
-                    .OrderByDescending(e => e.StartTime)
+                .AsQueryable();
+
+            if (dateFrom.HasValue)
+                query = query.Where(e => e.StartTime >= dateFrom.Value);
+
+            if (dateTo.HasValue)
+                query = query.Where(e => e.StartTime <= dateTo.Value);
+
+            return await query
+                .OrderByDescending(e => e.StartTime)
                 .Select(e => new UptimeEventExportDto
                 {
                     Id = e.Id,
@@ -63,9 +72,9 @@ namespace UptimeMonitor.API.Services
                 }).ToListAsync();
         }
 
-        public async Task<byte[]> GenerateExcelAsync()
+        public async Task<byte[]> GenerateExcelAsync(DateTime? dateFrom, DateTime? dateTo)
         {
-            var data = await GetAllForExportAsync();
+            var data = await GetAllForExportAsync(dateFrom, dateTo);
 
             using var workbook = new XLWorkbook();
             var worksheet = workbook.Worksheets.Add("Uptime Events");
@@ -83,7 +92,6 @@ namespace UptimeMonitor.API.Services
                 worksheet.Cell(1, i + 1).Style.Font.Bold = true;
             }
 
-            // Data
             int row = 2;
             foreach (var item in data)
             {
@@ -102,7 +110,6 @@ namespace UptimeMonitor.API.Services
                 row++;
             }
 
-            // Aplicar autofit
             worksheet.Columns().AdjustToContents();
 
             using var stream = new MemoryStream();

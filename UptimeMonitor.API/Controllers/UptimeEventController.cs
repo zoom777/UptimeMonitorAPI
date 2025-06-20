@@ -30,9 +30,9 @@ namespace UptimeMonitor.API.Controllers
         }
 
         [HttpGet("export")]
-        public async Task<IActionResult> ExportToExcel()
+        public async Task<IActionResult> ExportToExcel([FromQuery] DateTime? dateFrom, [FromQuery] DateTime? dateTo)
         {
-            var fileContent = await _service.GenerateExcelAsync();
+            var fileContent = await _service.GenerateExcelAsync(dateFrom, dateTo);
 
             return File(
                 fileContent,
