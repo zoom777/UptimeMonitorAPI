@@ -5,7 +5,6 @@ using UptimeMonitor.API.Interfaces;
 
 namespace UptimeMonitor.API.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class ServiceSystemController : ControllerBase
