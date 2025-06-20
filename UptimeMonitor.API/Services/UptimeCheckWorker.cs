@@ -1,9 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using UptimeMonitor.API.Data;
 using UptimeMonitor.API.Entities;
+using UptimeMonitor.API.Interfaces;
 
 namespace UptimeMonitor.API.Services
 {
@@ -28,6 +26,7 @@ namespace UptimeMonitor.API.Services
             {
                 using var scope = _scopeFactory.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
 
                 var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, limaTimeZone);
                 var checks = await db.UptimeChecks.ToListAsync(stoppingToken);
@@ -44,18 +43,47 @@ namespace UptimeMonitor.API.Services
 
                     if (!shouldRun) continue;
 
-                    var start = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, limaTimeZone);
+                    var start = now;
                     var result = await SimulateCheckAsync(check);
                     var end = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, limaTimeZone);
 
-                    db.UptimeEvents.Add(new UptimeEvent
+                    var newEvent = new UptimeEvent
                     {
                         UptimeCheckId = check.Id,
                         StartTime = start,
                         EndTime = end,
                         IsUp = result.IsUp,
                         Note = result.Note
-                    });
+                    };
+
+                    db.UptimeEvents.Add(newEvent);
+
+                    if (!result.IsUp)
+                    {
+                        var pastDowns = await db.UptimeEvents
+                            .Where(e => e.UptimeCheckId == check.Id && !e.IsUp)
+                            .OrderByDescending(e => e.StartTime)
+                            .Take(check.DownAlertResend)
+                            .ToListAsync();
+
+                        var firstDown = pastDowns.LastOrDefault();
+
+                        if (firstDown != null && now >= firstDown.StartTime.AddMinutes(check.DownAlertDelay))
+                        {
+                            var subject = $"[ALERT] UptimeCheck '{check.Name}' is DOWN";
+                            var body = check.DownAlertMessage ?? "The service is currently unavailable.";
+
+                            try
+                            {
+                                await emailService.SendAsync(check.AlertEmail, subject, body);
+                                _logger.LogInformation($"Alert email sent to {check.AlertEmail} for check '{check.Name}'.");
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, $"Failed to send alert email for check '{check.Name}'.");
+                            }
+                        }
+                    }
                 }
 
                 await db.SaveChangesAsync(stoppingToken);

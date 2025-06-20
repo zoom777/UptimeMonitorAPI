@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using UptimeMonitor.API;
+using UptimeMonitor.API.Config;
 using UptimeMonitor.API.Data;
 using UptimeMonitor.API.Interfaces;
 using UptimeMonitor.API.Services;
@@ -53,6 +54,9 @@ builder.Services.AddScoped<IUptimeEventService, UptimeEventService>();
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<JwtService>();
+
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 builder.Services.AddHostedService<UptimeCheckWorker>();
 
