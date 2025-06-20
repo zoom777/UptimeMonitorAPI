@@ -15,13 +15,40 @@ namespace UptimeMonitor.API.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<UptimeEventResponseDto>> GetAllAsync()
+        public async Task<IEnumerable<UptimeEventResponseDto>> GetAllAsync(
+            int? systemId,
+            int? componentId,
+            DateTime? startTime,
+            DateTime? endTime,
+            bool? status,
+            bool? isFalsePositive)
         {
-            return await _context.UptimeEvents
+            var query = _context.UptimeEvents
                 .Include(e => e.UptimeCheck)
                     .ThenInclude(uc => uc.Component)
                     .ThenInclude(c => c.ServiceSystem)
-                    .OrderByDescending(e => e.StartTime)
+                .AsQueryable();
+
+            if (systemId.HasValue)
+                query = query.Where(e => e.UptimeCheck.Component.ServiceSystemId == systemId.Value);
+
+            if (componentId.HasValue)
+                query = query.Where(e => e.UptimeCheck.ComponentId == componentId.Value);
+
+            if (startTime.HasValue)
+                query = query.Where(e => e.StartTime >= startTime.Value);
+
+            if (endTime.HasValue)
+                query = query.Where(e => e.StartTime <= endTime.Value);
+
+            if (status.HasValue)
+                query = query.Where(e => e.IsUp == status.Value);
+
+            if (isFalsePositive.HasValue)
+                query = query.Where(e => e.IsFalsePositive == isFalsePositive.Value);
+
+            return await query
+                .OrderByDescending(e => e.StartTime)
                 .Select(e => new UptimeEventResponseDto
                 {
                     Id = e.Id,

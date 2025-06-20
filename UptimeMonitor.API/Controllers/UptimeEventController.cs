@@ -16,9 +16,15 @@ namespace UptimeMonitor.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UptimeEventResponseDto>>> GetAll()
+        public async Task<ActionResult<IEnumerable<UptimeEventResponseDto>>> GetAll(
+            [FromQuery] int? systemId,
+            [FromQuery] int? componentId,
+            [FromQuery] DateTime? startTime,
+            [FromQuery] DateTime? endTime,
+            [FromQuery] bool? status,
+            [FromQuery] bool? isFalsePositive)
         {
-            var events = await _service.GetAllAsync();
+            var events = await _service.GetAllAsync(systemId, componentId, startTime, endTime, status, isFalsePositive);
             return Ok(events);
         }
 
