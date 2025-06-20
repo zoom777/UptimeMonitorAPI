@@ -49,9 +49,12 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IServiceSystemService, ServiceSystemService>();
 builder.Services.AddScoped<IComponentService, ComponentService>();
 builder.Services.AddScoped<IUptimeCheckService, UptimeCheckService>();
+builder.Services.AddScoped<IUptimeEventService, UptimeEventService>();
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<JwtService>();
+
+builder.Services.AddHostedService<UptimeCheckWorker>();
 
 var app = builder.Build();
 app.UseCors("AllowReactApp");

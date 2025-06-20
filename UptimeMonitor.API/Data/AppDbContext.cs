@@ -12,6 +12,8 @@ namespace UptimeMonitor.API.Data
         public DbSet<Component> Components => Set<Component>();
         public DbSet<UptimeCheck> UptimeChecks => Set<UptimeCheck>();
 
+        public DbSet<UptimeEvent> UptimeEvents => Set<UptimeEvent>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
