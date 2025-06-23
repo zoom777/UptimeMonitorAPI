@@ -1,4 +1,4 @@
-name: Build, Test and Deploy to Azure App Service (Docker ACR)
+name: Build and Deploy to Azure App Service
 
 on:
   push:
@@ -10,48 +10,49 @@ env:
   AZURE_RESOURCE_GROUP: Hackathon
   AZURE_CONTAINER_REGISTRY: uptimecr.azurecr.io
   IMAGE_NAME: uptimeimage2
+  DOTNET_VERSION: '8.0.x'
 
 jobs:
-  build-test-deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Setup .NET 8
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
         run: dotnet restore UptimeMonitor.sln
 
       - name: Build solution
-        run: dotnet build UptimeMonitor.sln --no-restore --configuration Release
+        run: dotnet build UptimeMonitor.sln --configuration Release --no-restore
 
       - name: Run unit tests
-        run: dotnet test UptimeMonitor.Tests/UptimeMonitor.Tests.csproj --no-build --configuration Release --verbosity normal
+        run: dotnet test UptimeMonitor.Tests/UptimeMonitor.Tests.csproj --no-build --configuration Release
 
-      - name: Log in to Azure
+      - name: Login to Azure
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Log in to Azure Container Registry
-        run: az acr login --name uptimecr
-
-      - name: Build and Push Docker image (latest + SHA)
+      - name: Login to Azure Container Registry
         run: |
-          docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest .
-          docker tag ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          az acr login --name uptimecr
 
-      - name: Update Azure App Service to use new image
+      - name: Build and push Docker image
+        run: |
+          docker build -t $AZURE_CONTAINER_REGISTRY/$IMAGE_NAME:latest .
+          docker push $AZURE_CONTAINER_REGISTRY/$IMAGE_NAME:latest
+
+      - name: Deploy to Azure Web App
         run: |
           az webapp config container set \
-            --name ${{ env.AZURE_WEBAPP_NAME }} \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --docker-custom-image-name ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
-            --docker-registry-server-url https://${{ env.AZURE_CONTAINER_REGISTRY }}
+            --name $AZURE_WEBAPP_NAME \
+            --resource-group $AZURE_RESOURCE_GROUP \
+            --container-image-name $AZURE_CONTAINER_REGISTRY/$IMAGE_NAME:latest \
+            --container-registry-url https://$AZURE_CONTAINER_REGISTRY \
+            --enable-app-service-storage false
