@@ -1,0 +1,57 @@
+name: Build, Test and Deploy to Azure App Service (Docker ACR)
+
+on:
+  push:
+    branches:
+      - development
+
+env:
+  AZURE_WEBAPP_NAME: uptimemonitor2
+  AZURE_RESOURCE_GROUP: Hackathon
+  AZURE_CONTAINER_REGISTRY: uptimecr.azurecr.io
+  IMAGE_NAME: uptimeimage2
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore UptimeMonitor.sln
+
+      - name: Build solution
+        run: dotnet build UptimeMonitor.sln --no-restore --configuration Release
+
+      - name: Run unit tests
+        run: dotnet test UptimeMonitor.Tests/UptimeMonitor.Test.csproj --no-build --configuration Release --verbosity normal
+
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Log in to Azure Container Registry
+        run: az acr login --name uptimecr
+
+      - name: Build and Push Docker image (latest + SHA)
+        run: |
+          docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest .
+          docker tag ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Update Azure App Service to use new image
+        run: |
+          az webapp config container set \
+            --name ${{ env.AZURE_WEBAPP_NAME }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --docker-custom-image-name ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
+            --docker-registry-server-url https://${{ env.AZURE_CONTAINER_REGISTRY }}
