@@ -7,7 +7,7 @@ namespace UptimeMonitor.API.Controllers
     public class DemoTestController : ControllerBase
     {
         [HttpGet]
-        public async Task<ActionResult<string>> GetDemo() =>
+        public ActionResult<string> GetDemo() =>
             Ok("Demo testing...1.2.3.");
     }
 }
